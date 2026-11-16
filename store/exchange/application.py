@@ -11,10 +11,16 @@ from store.exchange.service import ExchangeService
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 
+# PTAX, the public exchange-rate API of the Central Bank of Brazil (no key, no sign-up)
+PTAX_URL = "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata"
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    client = ExchangeRateClient(os.environ["EXCHANGE_API_URL"])
+    client = ExchangeRateClient(
+        os.getenv("EXCHANGE_API_URL", PTAX_URL),
+        timeout=float(os.getenv("EXCHANGE_API_TIMEOUT_SECONDS", "3")),
+    )
     cache = RateCache(
         host=os.environ["REDIS_HOST"],
         port=int(os.environ["REDIS_PORT"]),
